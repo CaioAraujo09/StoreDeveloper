@@ -21,4 +21,11 @@ public class Cart
         Date = date;
         Products = products ?? new List<CartItem>();
     }
+
+    public void UpdateCart(DateTime date, List<CartItem> updatedProducts)
+    {
+        Date = date;
+        Products = updatedProducts ?? new List<CartItem>();
+    }
+
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SalesManagement.Application.Common;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Domain.Interfaces;
 using SalesManagement.Infrasctructure.Persistence;
@@ -17,25 +18,10 @@ namespace SalesManagement.Infrastructure.Persistence.Repositories
         public async Task<IEnumerable<RegisteredUser>> GetAllAsync(int page, int size, string order)
         {
             var query = _context.RegisteredUsers.AsQueryable();
+            query = query.ApplySorting(order);
+            query = query.ApplyPagination(page, size);
 
-            if (!string.IsNullOrEmpty(order))
-            {
-                var orderParams = order.Split(',');
-                foreach (var param in orderParams)
-                {
-                    var trimmed = param.Trim();
-                    if (trimmed.EndsWith("desc"))
-                    {
-                        query = query.OrderByDescending(x => EF.Property<object>(x, trimmed.Replace("desc", "").Trim()));
-                    }
-                    else
-                    {
-                        query = query.OrderBy(x => EF.Property<object>(x, trimmed.Replace("asc", "").Trim()));
-                    }
-                }
-            }
-
-            return await query.Skip((page - 1) * size).Take(size).ToListAsync();
+            return await query.ToListAsync();
         }
 
         public async Task<RegisteredUser?> GetByIdAsync(Guid id)

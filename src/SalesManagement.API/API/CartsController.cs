@@ -37,7 +37,7 @@ namespace SalesManagement.API.Controllers
             if (cartDto == null)
                 return BadRequest("Dados inválidos.");
 
-            if (cartDto.UserId == Guid.Empty)
+            if (cartDto.RegisteredUserId == Guid.Empty)
                 return BadRequest("O campo 'UserId' é obrigatório.");
 
             if (cartDto.Products == null || cartDto.Products.Count == 0)
@@ -52,16 +52,6 @@ namespace SalesManagement.API.Controllers
             {
                 return ExceptionHandler.HandleException(ex, "Erro ao criar o carrinho.");
             }
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCart(Guid id, [FromBody] Cart cart)
-        {
-            if (id != cart.Id)
-                return BadRequest("O ID informado não corresponde ao ID do carrinho.");
-
-            await _cartService.UpdateCartAsync(cart);
-            return NoContent();
         }
 
         [HttpDelete("{id}")]

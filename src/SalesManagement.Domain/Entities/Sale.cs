@@ -26,8 +26,13 @@ public class Sale
         Branch = branch ?? throw new ArgumentNullException(nameof(branch));
         BranchId = branch.Id;
         Date = date;
+
         _items = items ?? new List<SaleItem>();
-        TotalAmount = _items.Sum(i => i.TotalPrice);
+        CalculateTotalAmount();
+    }
+    public void CalculateTotalAmount()
+    {
+        TotalAmount = _items.Sum(item => (item.UnitPrice * item.Quantity) - item.Discount);
     }
 
     public void Cancel()
@@ -65,12 +70,30 @@ public class Sale
             if (item.Quantity > 20)
                 throw new InvalidOperationException("Não é possível vender acima de 20 itens idênticos.");
 
-            if (item.Quantity >= 10)
-                item.Discount = item.UnitPrice * item.Quantity * 0.2m;
+            decimal totalSemDesconto = item.UnitPrice * item.Quantity;
+            decimal totalComDesconto = totalSemDesconto; 
+
+            if (item.Quantity >= 10 && item.Quantity <= 20)
+            {
+                item.Discount = totalSemDesconto * 0.2m;
+                totalComDesconto -= item.Discount;
+            }
             else if (item.Quantity >= 4)
-                item.Discount = item.UnitPrice * item.Quantity * 0.1m;
+            {
+                item.Discount = totalSemDesconto * 0.1m;
+                totalComDesconto -= item.Discount;
+            }
             else
-                item.Discount = 0;
+            {
+                item.Discount = 0; 
+            }
+
+            Console.WriteLine($"Produto: {item.ProductId}");
+            Console.WriteLine($"Quantidade: {item.Quantity}");
+            Console.WriteLine($"Preço sem desconto: {totalSemDesconto:C}");
+            Console.WriteLine($"Desconto aplicado: {item.Discount:C}");
+            Console.WriteLine($"Preço final com desconto: {totalComDesconto:C}");
+            Console.WriteLine("---------------------------------");
         }
 
         return new Sale(saleNumber, registeredUser, branch, date, items);

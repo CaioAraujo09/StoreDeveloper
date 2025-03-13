@@ -7,7 +7,6 @@ namespace SalesManagement.Domain.Interfaces
         Task<Cart?> GetCartByIdAsync(Guid cartId);
         Task<IEnumerable<Cart>> GetAllCartsAsync();
         Task AddCartAsync(Cart cart);
-        Task UpdateCartAsync(Cart cart);
         Task DeleteCartAsync(Guid cartId);
     }
 }

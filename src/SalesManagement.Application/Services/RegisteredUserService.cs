@@ -18,6 +18,7 @@ namespace SalesManagement.Application.Services
             return await _repository.GetAllAsync(page, size, order);
         }
 
+
         public async Task<RegisteredUser?> GetByIdAsync(Guid id)
         {
             return await _repository.GetByIdAsync(id);

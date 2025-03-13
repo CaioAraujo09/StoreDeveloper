@@ -1,4 +1,5 @@
-﻿using SalesManagement.Application.DTOs;
+﻿using Microsoft.EntityFrameworkCore;
+using SalesManagement.Application.DTOs;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Domain.Events;
 using SalesManagement.Domain.Interfaces;
@@ -10,17 +11,18 @@ public class SaleService
     private readonly ISaleRepository _saleRepository;
     private readonly IRegisteredUserRepository _userRepository;
     private readonly IBranchRepository _branchRepository;
+    private readonly IProductRepository _productRepository;
     private readonly IEventPublisher _eventPublisher;
 
 
     public SaleService(ISaleRepository saleRepository, IRegisteredUserRepository userRepository, 
-        IBranchRepository branchRepository, IEventPublisher eventPublisher)
+        IBranchRepository branchRepository, IProductRepository productRepository, IEventPublisher eventPublisher)
     {
         _saleRepository = saleRepository;
-        _eventPublisher = eventPublisher;
         _userRepository = userRepository;
         _branchRepository = branchRepository;
-
+        _productRepository = productRepository;
+        _eventPublisher = eventPublisher;
     }
     public async Task<Guid> CreateSaleAsync(Guid registeredUserId, string saleNumber, DateTime date, Guid branchId, List<SaleItemDto> itemDtos)
     {
@@ -36,21 +38,39 @@ public class SaleService
         if (existingSale != null)
             throw new InvalidOperationException($"Já existe uma venda com o número '{saleNumber}'.");
 
-        var items = itemDtos?.Select(dto => new SaleItem(dto.ProductId, dto.Quantity, dto.UnitPrice)).ToList() ?? new List<SaleItem>();
-        var sale = Sale.CreateSale(saleNumber, registeredUser, branch, date, items); 
+        var items = new List<SaleItem>();
+        foreach (var itemDto in itemDtos)
+        {
+            var product = await _productRepository.GetByIdAsync(itemDto.ProductId);
+            if (product == null)
+                throw new KeyNotFoundException($"Produto com ID '{itemDto.ProductId}' não encontrado.");
+
+            var unitPrice = product.Price;
+
+            var saleItem = SaleItem.Create(itemDto.ProductId, itemDto.Quantity, unitPrice);
+            items.Add(saleItem);
+        }
+        var sale = Sale.CreateSale(saleNumber, registeredUser, branch, date, items);
 
         try
         {
             await _saleRepository.AddAsync(sale);
             _eventPublisher.Publish(new SaleCreatedEvent(sale.Id, sale.TotalAmount, sale.Items.ToList()));
+
             return sale.Id;
+        }
+        catch (DbUpdateException ex)
+        {
+            Console.WriteLine($"Erro de banco ao salvar venda: {ex.InnerException?.Message ?? ex.Message}");
+            throw new Exception($"Erro de banco ao salvar venda: {ex.InnerException?.Message ?? ex.Message}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erro ao salvar venda: {ex.InnerException?.Message ?? ex.Message}");
-            throw new Exception($"Erro ao salvar venda: {ex.InnerException?.Message ?? ex.Message}");
+            Console.WriteLine($"Erro inesperado ao salvar venda: {ex.InnerException?.Message ?? ex.Message}");
+            throw new Exception($"Erro inesperado ao salvar venda: {ex.InnerException?.Message ?? ex.Message}");
         }
     }
+
 
     public async Task CancelSaleItemAsync(Guid saleId, Guid itemId)
     {
@@ -74,15 +94,16 @@ public class SaleService
     public async Task CancelSaleAsync(Guid saleId)
     {
         var sale = await _saleRepository.GetByIdAsync(saleId);
+
         if (sale == null)
-            throw new KeyNotFoundException("Venda não encontrada.");
+            throw new InvalidOperationException("Não é possível cancelar uma venda que não existe.");
 
         if (sale.IsCancelled)
-            throw new InvalidOperationException("A venda já está cancelada.");
+            throw new InvalidOperationException("Esta venda já foi cancelada.");
 
-        sale.Cancel(); 
-
+        sale.Cancel();
         await _saleRepository.UpdateAsync(sale);
+
         _eventPublisher.Publish(new SaleCancelledEvent(sale.Id));
     }
 

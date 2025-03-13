@@ -16,6 +16,7 @@ namespace SalesManagement.Infrasctructure.Persistence.Repositories
         public async Task<Cart?> GetCartByIdAsync(Guid cartId)
         {
             return await _dbContext.Carts
+                 .AsNoTracking()  
                 .Include(c => c.RegisteredUser)
                 .Include(c => c.Products)
                 .ThenInclude(ci => ci.Product)
@@ -34,12 +35,6 @@ namespace SalesManagement.Infrasctructure.Persistence.Repositories
         public async Task AddCartAsync(Cart cart)
         {
             _dbContext.Carts.Add(cart);
-            await _dbContext.SaveChangesAsync();
-        }
-
-        public async Task UpdateCartAsync(Cart cart)
-        {
-            _dbContext.Carts.Update(cart);
             await _dbContext.SaveChangesAsync();
         }
 

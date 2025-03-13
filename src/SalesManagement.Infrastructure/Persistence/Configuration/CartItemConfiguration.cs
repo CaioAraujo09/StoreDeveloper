@@ -16,6 +16,10 @@ namespace SalesManagement.Infrasctructure.Persistence.Configuration
             builder.Property(ci => ci.Quantity)
                 .IsRequired();
 
+            builder.Property(ci => ci.UnitPrice)
+                   .HasColumnType("decimal(18,2)")
+                   .IsRequired();
+
             builder.Property(ci => ci.CartId)
                 .IsRequired();
 
@@ -25,9 +29,9 @@ namespace SalesManagement.Infrasctructure.Persistence.Configuration
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(ci => ci.Product)
-                .WithMany()
-                .HasForeignKey(ci => ci.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
+                 .WithMany()
+                 .HasForeignKey(ci => ci.ProductId)
+                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

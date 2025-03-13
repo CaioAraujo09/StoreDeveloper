@@ -23,6 +23,7 @@ namespace SalesManagement.API.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
             try
             {
                 var saleId = await _saleService.CreateSaleAsync(
@@ -49,9 +50,13 @@ namespace SalesManagement.API.Controllers
                 await _saleService.CancelSaleAsync(saleId);
                 return NoContent();
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
             catch (Exception ex)
             {
-                return ExceptionHandler.HandleException(ex, "Erro ao cancelar a venda.");
+                return StatusCode(500, new { error = "Erro interno ao cancelar a venda.", details = ex.Message });
             }
         }
 
