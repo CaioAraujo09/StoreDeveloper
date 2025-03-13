@@ -13,6 +13,34 @@ O sistema foi estruturado seguindo os princípios de Domain-Driven Design (DDD) 
 🔹 Domain: Define as entidades, regras de negócio e interfaces de repositórios.
 🔹 Infrastructure: Implementa os repositórios, configuração do banco de dados e serviços de infraestrutura.
 
+. Passo a Passo para Execução do Projeto
+1. Clone o repositório do projeto:
+   ```bash
+   git clone https://github.com/seu-repositorio/StoreDeveloper.git
+   ```
+2. Acesse a pasta do projeto:
+   ```bash
+   cd SalesManagement
+   ```
+3. Restaure as dependências do projeto:
+   ```bash
+   dotnet restore
+   ```
+4. Configure o banco de dados no arquivo `appsettings.json` dentro da camada API.
+5. Execute as migrations para atualizar o banco de dados:
+   ```bash
+   dotnet ef database update --context SaleDbContext
+   dotnet ef database update --context AuthDbContext
+   ```
+6. Inicie a aplicação:
+   ```bash
+   dotnet run --project src/SalesManagement.API
+   ```
+7. Acesse a API no navegador pelo Swagger:
+   ```
+   https://localhost:7000/swagger
+
+
 3. Descrição das APIs
 3.1 API de Sales
 A API de Sales gerencia as vendas, permitindo criação, listagem, cancelamento e consulta detalhada.
@@ -89,5 +117,26 @@ As listagens principais suportam paginação, ordenação e filtros para melhor 
 **Exemplo de Ordenação:** `GET /products?_order=price desc, title asc`
 **Exemplo de Filtro:** `GET /products?category=electronics&_minPrice=100&_maxPrice=500`
 
-6. Conclusão
+6. Eventos e Publicação de Eventos no Sistema
+O SalesManagement implementa o conceito de eventos para promover um baixo acoplamento entre os componentes da aplicação e garantir que ações importantes sejam comunicadas de forma assíncrona para outras partes do sistema. Isso é feito utilizando um Event Publisher para disparar eventos que podem ser consumidos por outros serviços ou sistemas externos.
+
+6.1. Objetivo da Implementação de Eventos
+A publicação de eventos permite:
+
+Melhor organização do código e desacoplamento entre serviços.
+Processamento assíncrono de ações que dependem de eventos passados.
+Escalabilidade para suportar novas integrações sem modificar código existente.
+
+7. Autenticação e Autorização com JWT
+O SalesManagement utiliza JSON Web Token (JWT) para autenticação e autorização de usuários na API. Esse modelo garante segurança e escalabilidade, permitindo que os clientes façam requisições autenticadas sem a necessidade de armazenar informações de sessão no servidor.
+
+7.1. Como Funciona a Autenticação JWT
+O processo de autenticação JWT segue os seguintes passos:
+
+O usuário envia um POST /auth/login com suas credenciais (username e senha).
+O sistema valida as credenciais e, se corretas, gera um token JWT contendo informações do usuário.
+O cliente usa esse token em todas as requisições subsequentes, enviando-o no cabeçalho Authorization.
+O sistema valida o token para autorizar o acesso aos recursos protegidos.
+
+8. Conclusão
 O SalesManagement foi projetado com uma arquitetura modular baseada em DDD para garantir escalabilidade, facilidade de manutenção e clareza na separação de responsabilidades. O uso de boas práticas, como middleware para tratamento de erros e suporte completo para paginação e filtros, garante uma API robusta e flexível para o gerenciamento de vendas e estoque.
