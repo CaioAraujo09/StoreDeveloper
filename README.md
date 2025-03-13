@@ -138,5 +138,53 @@ O sistema valida as credenciais e, se corretas, gera um token JWT contendo infor
 O cliente usa esse token em todas as requisições subsequentes, enviando-o no cabeçalho Authorization.
 O sistema valida o token para autorizar o acesso aos recursos protegidos.
 
-8. Conclusão
+8. Separação dos Contextos: SaleDbContext e AuthDbContext
+No SalesManagement, adotamos uma abordagem modular e desacoplada para a gestão do banco de dados, separando as responsabilidades em dois contextos distintos:
+
+SaleDbContext → Gerencia todas as entidades relacionadas às vendas, produtos, carrinhos e filiais.
+AuthDbContext → Responsável pela autenticação e gerenciamento de usuários.
+Essa estratégia segue os princípios do Domain-Driven Design (DDD), garantindo melhor organização do código, baixo acoplamento e maior escalabilidade.
+
+8.1. Por que separar os contextos?
+📌 Benefícios da separação:
+
+✅ Isolamento de Responsabilidades:
+Cada contexto foca em um domínio específico, evitando dependências desnecessárias entre vendas e autenticação.
+
+✅ Maior Segurança:
+As informações de autenticação (senhas, tokens, permissões) ficam separadas do restante do sistema, reduzindo o risco de exposição.
+
+✅ Escalabilidade:
+Podemos escalar ou migrar os bancos separadamente, por exemplo, armazenar autenticação em um serviço externo (ex: IdentityServer, Firebase Auth).
+
+✅ Facilidade na manutenção:
+Se precisarmos modificar as regras de autenticação, isso não impactará a lógica de vendas e vice-versa.
+
+✅ Facilidade na Migração de Dados:
+Caso a empresa precise mudar o sistema de autenticação (ex: migrar para OAuth 2.0 ou um provedor externo), a separação dos contextos facilita a transição sem afetar o restante do sistema.
+
+8.2. Implementação dos Contextos
+8.2.1. SaleDbContext (Contexto de Vendas)
+Este contexto gerencia as entidades de domínio relacionadas às vendas.
+
+📌 Entidades Gerenciadas:
+
+Sales (Vendas)
+SaleItems (Itens da venda)
+Products (Produtos)
+Cart (Carrinho de compras)
+CartItems (Itens do carrinho)
+Branches (Filiais)
+RegisteredUsers (Usuários vinculados às vendas)
+
+8.2.2. AuthDbContext (Contexto de Autenticação)
+Este contexto é exclusivo para gerenciar autenticação e controle de acesso.
+
+📌 Entidades Gerenciadas:
+
+Users (Usuários autenticáveis)
+Roles (Perfis de usuários)
+Tokens (Tokens de acesso)
+
+9. Conclusão
 O SalesManagement foi projetado com uma arquitetura modular baseada em DDD para garantir escalabilidade, facilidade de manutenção e clareza na separação de responsabilidades. O uso de boas práticas, como middleware para tratamento de erros e suporte completo para paginação e filtros, garante uma API robusta e flexível para o gerenciamento de vendas e estoque.
